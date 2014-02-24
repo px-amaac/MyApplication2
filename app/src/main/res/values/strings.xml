@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Zappos Android Intern Challenge App</string>
+    <string name="title_item_detail">Item Detail</string>
+    <string name="search_label">Search for an item.</string>
+    <string name="search_button">Find me things!</string>
+    <string name="app_label">Search</string>
+    <string name="search_hint">Search Zappos</string>
+
+</resources>
