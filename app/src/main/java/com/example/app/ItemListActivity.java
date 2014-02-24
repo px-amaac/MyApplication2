@@ -1,16 +1,23 @@
 package com.example.app;
 
 import android.app.SearchManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.Toast;
 
 
 /**
  * An activity representing a list of Items. This activity
  * has different presentations for handset and tablet-size devices. On
- * handsets, the activity presents a list of items, which when touched,
+ * handsets, the activity presents a list of items that the user searched, which when touched,
  * lead to a {@link ItemDetailActivity} representing
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
@@ -32,6 +39,8 @@ public class ItemListActivity extends FragmentActivity
      */
     private boolean mTwoPane;
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,17 +59,23 @@ public class ItemListActivity extends FragmentActivity
                     .findFragmentById(R.id.item_list))
                     .setActivateOnItemClick(true);
         }
-        Intent intent = getIntent();
-        if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
-            String query = intent.getStringExtra(SearchManager.QUERY);
-            querysearch(query);
-        }
+       handleIntent(getIntent());
         // TODO: If exposing deep links into your app, handle intents here.
     }
-
-    private void querysearch(String query) {
-        Toast.makeText(getApplicationContext(), "QUERY Search"+ query, Toast.LENGTH_LONG);
+    @Override
+    protected void onNewIntent(Intent intent)
+    {
+        handleIntent(intent);
     }
+
+    private void handleIntent(Intent intent)
+    {
+        if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+            String query = intent.getStringExtra(SearchManager.QUERY);
+            Toast.makeText(getApplicationContext(), "QUERY Search"+ query, Toast.LENGTH_LONG).show();
+        }
+    }
+
 
     /**
      * Callback method from {@link ItemListFragment.Callbacks}
@@ -88,4 +103,31 @@ public class ItemListActivity extends FragmentActivity
             startActivity(detailIntent);
         }
     }
+
+    // Populates the activity's options menu.
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.mainmenu, menu);
+        return true;
+    }
+
+    // Handles the user's menu selection.
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.settings:
+                Intent settingsActivity = new Intent(getBaseContext(), SettingsActivity.class);
+                startActivity(settingsActivity);
+                return true;
+            case R.id.refresh:
+                ItemListFragment ilf = (ItemListFragment) getSupportFragmentManager().findFragmentById(R.id.item_list);
+                ilf.loadPage();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+
 }
