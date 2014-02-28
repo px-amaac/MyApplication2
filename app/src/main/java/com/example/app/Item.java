@@ -1,10 +1,11 @@
-package com.example.app;
+/*package com.example.app;
 
 import java.io.Serializable;
+import java.util.HashMap;
 
 /**
  * Created by ShaDynastys on 2/24/14.
- */
+
 public class Item implements Serializable {
 
     private String price;
@@ -49,4 +50,11 @@ public class Item implements Serializable {
 
     public void setProductId(String productId){this.productId = productId;}
 
+    public HashMap<String, String> toHash(){
+
+        HashMap<String, String> result = new HashMap<String, String>();
+        result.put()
+    }
+
 }
+*/
