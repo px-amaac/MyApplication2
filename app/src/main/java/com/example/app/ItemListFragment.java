@@ -115,6 +115,7 @@ public class ItemListFragment extends ListFragment {
         IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
         receiver = new NetworkReceiver();
         getActivity().registerReceiver(receiver, filter);
+        data = new ArrayList<HashMap<String, String> >();
 
         setHasOptionsMenu(true);
     }
