@@ -14,23 +14,17 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.ListFragment;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
-import com.example.app.dummy.DummyContent;
-
-import org.xmlpull.v1.XmlPullParserException;
-
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -41,7 +35,7 @@ import javax.net.ssl.HttpsURLConnection;
  * also supports tablet devices by allowing list items to be given an
  * 'activated' state upon selection. This helps indicate which item is
  * currently being viewed in a {@link ItemDetailFragment}.
- * <p>
+ * <p/>
  * Activities containing this fragment MUST implement the {@link Callbacks}
  * interface.
  */
@@ -50,6 +44,9 @@ public class ItemListFragment extends ListFragment {
     public static final String WIFI = "Wi-Fi";
     public static final String ANY = "Any";
     private static final String URL = "http://api.zappos.com/Search?term=";
+
+
+
 
     // Whether there is a Wi-Fi connection.
     private static boolean wifiConnected = false;
@@ -80,8 +77,12 @@ public class ItemListFragment extends ListFragment {
      */
     private int mActivatedPosition = ListView.INVALID_POSITION;
 
+    /*cnumber of paged in the list/ number of times list has gotten more data*/
     private int currentPage = 0;
-    private List<Item> data = null;
+    /*actual data to fill the list.*/
+    private ArrayList<HashMap<String,String>>  data = null;
+    /*custom list view loader task uses Universal image adapter*/
+    private ListViewLoaderTask listTask = null;
 
     /**
      * A callback interface that all activities containing this fragment must
@@ -92,10 +93,12 @@ public class ItemListFragment extends ListFragment {
         /**
          * Callback for when an item has been selected.
          */
-        public void onItemSelected(Item aaItem);
+        public void onItemSelected(HashMap<String, String> aaItem);
+
         public String getQuery();
 
     }
+
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
@@ -188,7 +191,8 @@ public class ItemListFragment extends ListFragment {
 
 
             String query = URLEncoder.encode(mCallbacks.getQuery(), "utf-8");
-            String lUrl = URL + query + getResources().getString(R.string.api_key);
+            ///Search/term/<SEARCH_TERM>?limit=<LIMIT>&page=<PAGE_NUMBER>
+            String lUrl = URL + query + getResources().getString(R.string.limit_page) + currentPage + getResources().getString(R.string.api_key);
             new DownloadResultTask().execute(lUrl);
         } else {
             //TODO: Modify layout to display an error
@@ -292,7 +296,7 @@ public class ItemListFragment extends ListFragment {
 
     private class DownloadResultTask extends AsyncTask<String, Void, String> {
         View footer;
-        List<Item> items = null;
+        List<HashMap<String, String>> items = null;
         ZapposJSONParser zjsonParse = new ZapposJSONParser();
 
         @Override
@@ -305,58 +309,76 @@ public class ItemListFragment extends ListFragment {
         @Override
         protected String doInBackground(String... params) {
 
-            try{
-                    InputStream JSONStream = downloadUrl(params[0]);
-                    items = zjsonParse.readStream(JSONStream);
-                    if(items == null){
-                        return getResources().getString(R.string.data_not_there);
-                    }
-                    else
-                        return getResources().getString(R.string.data_loaded);
+            try {
+                InputStream JSONStream = downloadUrl(params[0]);
+                items = zjsonParse.readStream(JSONStream);
+                if (items == null) {
+                    return getResources().getString(R.string.data_not_there);
+                } else
+                    return getResources().getString(R.string.data_loaded);
 
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 if (e.getMessage().contains("authentication challenge")) {
                     return "Error " + Integer.toString(HttpsURLConnection.HTTP_UNAUTHORIZED) + "\nYou are not authorized to see this data";
-                }
-                else return "";
+                } else return "";
             }
         }
 
         @Override
         protected void onPostExecute(String result) {
             Toast.makeText(getActivity(), result, Toast.LENGTH_LONG).show();
-            if(items.isEmpty())
-            {
+            if (items.isEmpty()) {
                 Toast.makeText(getActivity(), getResources().getString(R.string.query_empty), Toast.LENGTH_LONG).show();
                 getActivity().onBackPressed();
+            } else{
+                currentPage++;
+                data.addAll(items);
             }
-            else
-                Toast.makeText(getActivity(), "Success" + items.get(0).getPrice(), Toast.LENGTH_LONG).show(); //do something with data here
-
             getListView().removeFooterView(footer);
         }
-
-
     }
 
-    private String convertStreamToString(InputStream is) {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-        StringBuilder sb = new StringBuilder();
+    private class ListViewLoaderTask extends AsyncTask<ArrayList<HashMap<String, String>>, Void, ImageLoaderListAdapter> {
+        ImageLoaderListAdapter mAdapter = null;
+        int count;
+        String imgUrl = null;
 
-        String line = null;
-        try {
-            while ((line = reader.readLine()) != null) sb.append(line + "\n");
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                is.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+        // String url = "http://kzfr.org/u/img/original/";
+
+        @Override
+        protected ImageLoaderListAdapter doInBackground(
+                ArrayList<HashMap<String, String>>... list) {
+            ArrayList<HashMap<String, String>> items = list[0];
+            String[] from = {"thumbnailImageUrl", "brandName", "productName", "price", "percentOff", "productUrl"};
+            int[] to = {R.id.item_image, R.id.brand_name, R.id.product_name, R.id.price, R.id.percentoff, R.id.url};
+
+
+            mAdapter = new ImageLoaderListAdapter(getActivity()
+                    .getBaseContext(), items, R.layout.searchrow, from, to);
+
+            return mAdapter;
+        }
+
+
+        @Override
+        protected void onPostExecute(ImageLoaderListAdapter mAdapter) {
+            setListAdapter(mAdapter);
+            updateThisList();
+        }
+    }
+
+    public void updateThisList() {
+        if (data != null) {
+            if (!checkAdapter()) {
+                if (listTask == null) {
+                    listTask = new ListViewLoaderTask();
+                    listTask.execute(data);
+                }
+            } else {
+                ((ImageLoaderListAdapter) getListAdapter())
+                        .notifyDataSetChanged();
             }
         }
-        return sb.toString();
     }
 
     // Given a string representation of a URL, sets up a connection and gets

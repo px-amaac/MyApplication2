@@ -20,7 +20,10 @@
     <string name="data_not_there">You are connected but Data is currently not available.</string>
     <string name="data_loaded">Data Loaded</string>
     <string name="query_empty">Your Query returned 0 results.</string>
+    <string name="limit_page">&amp;limit=10&amp;page=</string>
     <string name="api_key">&amp;key=a73121520492f88dc3d33daf2103d7574f1a3166</string>
+    <string name="itemdescription">Things about the Item</string>
+    <string name="percent_off_label">On Sale</string>
 
     <string-array name="search_names">
         <item>styleId</item>

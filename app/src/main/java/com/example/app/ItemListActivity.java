@@ -1,19 +1,20 @@
 package com.example.app;
 
 import android.app.SearchManager;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.Toast;
+
+import com.nostra13.universalimageloader.cache.memory.impl.WeakMemoryCache;
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 
 import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
 
 
 /**
@@ -42,12 +43,21 @@ public class ItemListActivity extends FragmentActivity
     private boolean mTwoPane;
     private String aaQuery;
     private static final String ITEM_KEY = "item_key";
+    private HashMap<String,String> item = null;
+    protected ImageLoader imageLoader = ImageLoader.getInstance();
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_item_list);
+
+        ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(
+                getApplicationContext()).memoryCache(new WeakMemoryCache())
+                .denyCacheImageMultipleSizesInMemory()
+                .defaultDisplayImageOptions(DisplayImageOptions.createSimple())
+                .build();
+        imageLoader.init(config);
 
         if (findViewById(R.id.item_detail_container) != null) {
             // The detail container view will be present only in the
@@ -63,7 +73,6 @@ public class ItemListActivity extends FragmentActivity
                     .setActivateOnItemClick(true);
         }
         handleIntent(getIntent());
-        // TODO: If exposing deep links into your app, handle intents here.
     }
 
     @Override
@@ -83,15 +92,13 @@ public class ItemListActivity extends FragmentActivity
      * indicating that the item with the given ID was selected.
      */
     @Override
-    public void onItemSelected(Item aaItem) {
+    public void onItemSelected(HashMap<String, String> aaItem) {
+        this.item = aaItem;
         if (mTwoPane) {
             // In two-pane mode, show the detail view in this activity by
             // adding or replacing the detail fragment using a
             // fragment transaction.
-            Bundle arguments = new Bundle();
-            arguments.putSerializable(ITEM_KEY, aaItem);
             ItemDetailFragment fragment = new ItemDetailFragment();
-            fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.item_detail_container, fragment)
                     .commit();
@@ -100,7 +107,6 @@ public class ItemListActivity extends FragmentActivity
             // In single-pane mode, simply start the detail activity
             // for the selected item ID.
             Intent detailIntent = new Intent(this, ItemDetailActivity.class);
-            detailIntent.putExtra(ITEM_KEY, aaItem);
             startActivity(detailIntent);
         }
     }
