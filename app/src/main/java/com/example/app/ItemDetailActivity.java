@@ -6,6 +6,8 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
 import android.view.MenuItem;
 
+import java.util.HashMap;
+
 /**
  * An activity representing a single Item detail screen. This
  * activity is only used on handset devices. On tablet-size devices,
@@ -15,8 +17,10 @@ import android.view.MenuItem;
  * This activity is mostly just a 'shell' activity containing nothing
  * more than a {@link ItemDetailFragment}.
  */
-public class ItemDetailActivity extends FragmentActivity {
+public class ItemDetailActivity extends FragmentActivity implements ItemDetailFragment.GetData{
 
+
+    private HashMap<String,String> item = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -24,7 +28,8 @@ public class ItemDetailActivity extends FragmentActivity {
 
         // Show the Up button in the action bar.
         getActionBar().setDisplayHomeAsUpEnabled(true);
-
+        Intent intent = getIntent();
+        item = (HashMap<String, String>) intent.getSerializableExtra("data");
         // savedInstanceState is non-null when there is fragment state
         // saved from previous configurations of this activity
         // (e.g. when rotating the screen from portrait to landscape).
@@ -63,5 +68,10 @@ public class ItemDetailActivity extends FragmentActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public HashMap<String, String> getData() {
+        return item;
     }
 }

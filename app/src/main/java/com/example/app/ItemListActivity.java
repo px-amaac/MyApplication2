@@ -7,6 +7,7 @@ import android.support.v4.app.FragmentActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.nostra13.universalimageloader.cache.memory.impl.WeakMemoryCache;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
@@ -34,7 +35,7 @@ import java.util.HashMap;
  * to listen for item selections.
  */
 public class ItemListActivity extends FragmentActivity
-        implements ItemListFragment.Callbacks {
+        implements ItemListFragment.Callbacks, ItemDetailFragment.GetData{
 
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
@@ -43,8 +44,12 @@ public class ItemListActivity extends FragmentActivity
     private boolean mTwoPane;
     private String aaQuery;
     private static final String ITEM_KEY = "item_key";
-    private HashMap<String,String> item = null;
+    private HashMap<String,String> item;
     protected ImageLoader imageLoader = ImageLoader.getInstance();
+
+    public ItemListActivity() {
+        item = null;
+    }
 
 
     @Override
@@ -93,7 +98,8 @@ public class ItemListActivity extends FragmentActivity
      */
     @Override
     public void onItemSelected(HashMap<String, String> aaItem) {
-        this.item = aaItem;
+        item = aaItem;
+        Toast.makeText(getApplicationContext(), aaItem.get("price"), Toast.LENGTH_SHORT).show();
         if (mTwoPane) {
             // In two-pane mode, show the detail view in this activity by
             // adding or replacing the detail fragment using a
@@ -106,7 +112,9 @@ public class ItemListActivity extends FragmentActivity
         } else {
             // In single-pane mode, simply start the detail activity
             // for the selected item ID.
+
             Intent detailIntent = new Intent(this, ItemDetailActivity.class);
+            detailIntent.putExtra("data", item);
             startActivity(detailIntent);
         }
     }
@@ -145,5 +153,10 @@ public class ItemListActivity extends FragmentActivity
     @Override
     public String getQuery() {
         return aaQuery;
+    }
+
+    @Override
+    public HashMap<String, String> getData() {
+        return item;
     }
 }

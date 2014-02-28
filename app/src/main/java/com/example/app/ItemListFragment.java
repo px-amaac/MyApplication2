@@ -93,11 +93,11 @@ public class ItemListFragment extends ListFragment implements AbsListView.OnScro
         //checks when scroll state is idle. This happens at the bottem of the list view. When user reaches bottom it loads more data.
         if(scrollState == SCROLL_STATE_IDLE){
             if (view.getLastVisiblePosition() >= view.getCount() - 1 - threshold) {
-                Toast.makeText(getActivity(), "Scrol StateIdle, last visible " + view.getLastVisiblePosition() + "threshold = " + threshold, Toast.LENGTH_LONG).show();
+
                 currentPage++;
                 //load more list items:
                 try {
-                    Toast.makeText(getActivity(), "LoadPage", Toast.LENGTH_LONG).show();
+
                     loadPage(currentPage);
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
