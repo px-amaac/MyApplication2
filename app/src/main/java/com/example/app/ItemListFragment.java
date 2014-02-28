@@ -105,7 +105,7 @@ public class ItemListFragment extends ListFragment {
      */
     public ItemListFragment() {
     }
-
+    //sets up the connectivity action intent filter. registers broadcastreciever
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -133,7 +133,7 @@ public class ItemListFragment extends ListFragment {
             setActivatedPosition(savedInstanceState.getInt(STATE_ACTIVATED_POSITION));
         }
     }
-
+    //sets up shared preferences and updates connected flags. try catch load page at the bottom
     @Override
     public void onStart() {
         super.onStart();
@@ -192,7 +192,9 @@ public class ItemListFragment extends ListFragment {
 
             String query = URLEncoder.encode(mCallbacks.getQuery(), "utf-8");
             ///Search/term/<SEARCH_TERM>?limit=<LIMIT>&page=<PAGE_NUMBER>
+            /*************************************************************************************************************************************/
             String lUrl = URL + query + getResources().getString(R.string.limit_page) + currentPage + getResources().getString(R.string.api_key);
+            /***********************************************************Test This Tomrrow***************************************************************************/
             new DownloadResultTask().execute(lUrl);
         } else {
             //TODO: Modify layout to display an error
@@ -333,6 +335,8 @@ public class ItemListFragment extends ListFragment {
             } else{
                 currentPage++;
                 data.addAll(items);
+                ListViewLoaderTask lvLoader = new ListViewLoaderTask();
+                lvLoader.execute(data);
             }
             getListView().removeFooterView(footer);
         }
@@ -346,8 +350,7 @@ public class ItemListFragment extends ListFragment {
         // String url = "http://kzfr.org/u/img/original/";
 
         @Override
-        protected ImageLoaderListAdapter doInBackground(
-                ArrayList<HashMap<String, String>>... list) {
+        protected ImageLoaderListAdapter doInBackground(ArrayList<HashMap<String, String>>... list) {
             ArrayList<HashMap<String, String>> items = list[0];
             String[] from = {"thumbnailImageUrl", "brandName", "productName", "price", "percentOff", "productUrl"};
             int[] to = {R.id.item_image, R.id.brand_name, R.id.product_name, R.id.price, R.id.percentoff, R.id.url};
