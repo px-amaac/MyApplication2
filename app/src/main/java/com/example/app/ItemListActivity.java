@@ -13,6 +13,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import java.io.UnsupportedEncodingException;
+
 
 /**
  * An activity representing a list of Items. This activity
@@ -21,11 +23,11 @@ import android.widget.Toast;
  * lead to a {@link ItemDetailActivity} representing
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
- * <p>
+ * <p/>
  * The activity makes heavy use of fragments. The list of items is a
  * {@link ItemListFragment} and the item details
  * (if present) is a {@link ItemDetailFragment}.
- * <p>
+ * <p/>
  * This activity also implements the required
  * {@link ItemListFragment.Callbacks} interface
  * to listen for item selections.
@@ -38,7 +40,8 @@ public class ItemListActivity extends FragmentActivity
      * device.
      */
     private boolean mTwoPane;
-
+    private String aaQuery;
+    private static final String ITEM_KEY = "item_key";
 
 
     @Override
@@ -59,20 +62,18 @@ public class ItemListActivity extends FragmentActivity
                     .findFragmentById(R.id.item_list))
                     .setActivateOnItemClick(true);
         }
-       handleIntent(getIntent());
+        handleIntent(getIntent());
         // TODO: If exposing deep links into your app, handle intents here.
     }
+
     @Override
-    protected void onNewIntent(Intent intent)
-    {
+    protected void onNewIntent(Intent intent) {
         handleIntent(intent);
     }
 
-    private void handleIntent(Intent intent)
-    {
+    private void handleIntent(Intent intent) {
         if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
-            String query = intent.getStringExtra(SearchManager.QUERY);
-            Toast.makeText(getApplicationContext(), "QUERY Search"+ query, Toast.LENGTH_LONG).show();
+            aaQuery = intent.getStringExtra(SearchManager.QUERY);
         }
     }
 
@@ -82,13 +83,13 @@ public class ItemListActivity extends FragmentActivity
      * indicating that the item with the given ID was selected.
      */
     @Override
-    public void onItemSelected(String id) {
+    public void onItemSelected(Item aaItem) {
         if (mTwoPane) {
             // In two-pane mode, show the detail view in this activity by
             // adding or replacing the detail fragment using a
             // fragment transaction.
             Bundle arguments = new Bundle();
-            arguments.putString(ItemDetailFragment.ARG_ITEM_ID, id);
+            arguments.putSerializable(ITEM_KEY, aaItem);
             ItemDetailFragment fragment = new ItemDetailFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()
@@ -99,7 +100,7 @@ public class ItemListActivity extends FragmentActivity
             // In single-pane mode, simply start the detail activity
             // for the selected item ID.
             Intent detailIntent = new Intent(this, ItemDetailActivity.class);
-            detailIntent.putExtra(ItemDetailFragment.ARG_ITEM_ID, id);
+            detailIntent.putExtra(ITEM_KEY, aaItem);
             startActivity(detailIntent);
         }
     }
@@ -122,12 +123,21 @@ public class ItemListActivity extends FragmentActivity
                 return true;
             case R.id.refresh:
                 ItemListFragment ilf = (ItemListFragment) getSupportFragmentManager().findFragmentById(R.id.item_list);
-                ilf.loadPage();
+                if (ilf != null) {
+                    try {
+                        ilf.loadPage();
+                    } catch (UnsupportedEncodingException e) {
+                        throw new AssertionError("UTF-8 is unknown");
+                    }
+                }
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
 
-
+    @Override
+    public String getQuery() {
+        return aaQuery;
+    }
 }

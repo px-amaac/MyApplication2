@@ -16,45 +16,50 @@ public class ZapposJSONParser {
     public List<Item> readStream(InputStream in) throws IOException {
         JsonReader reader = new JsonReader(new InputStreamReader(in, "UTF-8"));
         try {
-            return readPaddedInput(reader);
+            return readInput(reader);
         }finally{
                 reader.close();
         }
     }
 
-    public List<Item> readPaddedInput(JsonReader reader) throws IOException {
+    public List<Item> readInput(JsonReader reader) throws IOException {
+
+
         List<Item> items = new ArrayList<Item>();
         String statusCode = null;
         Integer currentResultsCount = null;
         Integer totalResultsCount = null;
 
         reader.beginObject();
-        while(reader.hasNext())
-        {
-            String name = reader.nextName();
-            if(name.equals("statusCode")){
-                statusCode = reader.nextString();
-            }
-            if(statusCode.equals("200")){
-                if (name.equals("results")){
-                    reader.beginArray();
-                    while(reader.hasNext()) {
-                        items.add(readItems(reader));
-                    }
-                    reader.endArray();
-                }else if (name.equals("currentResultsCount")){
+
+
+        if(reader.nextName().equals("statusCode")){
+            statusCode = reader.nextString();
+        }
+        if(statusCode.equals("200")){
+            while(reader.hasNext())
+            {
+                String name = reader.nextName();
+                 if(name.equals("results")){
+                        reader.beginArray();
+                        while(reader.hasNext()) {
+                            items.add(readItems(reader));
+                        }
+                        reader.endArray();
+                 }
+                else if (name.equals("currentResultsCount")){
                     currentResultsCount = reader.nextInt();
                 }else if (name.equals("totalResultsCount")){
                     totalResultsCount = reader.nextInt();
                 }else{
                     reader.skipValue();
                 }
-            }else{
-                return null;
             }
+            reader.endObject();
+            return items;
         }
-        reader.endObject();
-        return items;
+        else
+            return null;
     }
 
     public Item readItems(JsonReader reader) throws IOException{

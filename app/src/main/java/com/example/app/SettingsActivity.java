@@ -8,7 +8,7 @@ import android.preference.PreferenceFragment;
 /**
  * Created by ShaDynastys on 2/23/14.
  */
-public class SettingsActivity extends PreferenceFragment implements SharedPreferences.OnSharedPreferenceChangeListener
+public class SettingsActivity extends PreferenceActivity implements SharedPreferences.OnSharedPreferenceChangeListener
     {
 
         @Override

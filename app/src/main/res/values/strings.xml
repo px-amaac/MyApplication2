@@ -17,5 +17,9 @@
     <string name="loading">Loading&#8230;</string>
 
     <string name="connection_error">Unable to load content. Check your network connection.</string>
+    <string name="data_not_there">You are connected but Data is currently not available.</string>
+    <string name="data_loaded">Data Loaded</string>
+    <string name="query_empty">Your Query returned 0 results.</string>
+    <string name="api_key">&amp;key=a73121520492f88dc3d33daf2103d7574f1a3166</string>
 
 </resources>

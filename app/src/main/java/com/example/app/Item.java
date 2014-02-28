@@ -13,6 +13,7 @@ public class Item implements Serializable {
     private String productName;
     private String brandName;
     private String productId;
+    private static final long serialVersionUID = 16543214;
 
     public Item(String price, String percentOff, String imgUrl, String productName, String brandName, String productId) {
         super();

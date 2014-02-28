@@ -23,11 +23,18 @@ import com.example.app.dummy.DummyContent;
 
 import org.xmlpull.v1.XmlPullParserException;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.util.HashMap;
 import java.util.List;
+
+import javax.net.ssl.HttpsURLConnection;
 
 /**
  * A list fragment representing a list of Items. This fragment
@@ -43,6 +50,7 @@ public class ItemListFragment extends ListFragment {
     public static final String WIFI = "Wi-Fi";
     public static final String ANY = "Any";
     private static final String URL = "http://api.zappos.com/Search?term=";
+
     // Whether there is a Wi-Fi connection.
     private static boolean wifiConnected = false;
     // Whether there is a mobile connection.
@@ -65,12 +73,15 @@ public class ItemListFragment extends ListFragment {
      * The fragment's current callback object, which is notified of list item
      * clicks.
      */
-    private Callbacks mCallbacks = sDummyCallbacks;
+    private Callbacks mCallbacks;
 
     /**
      * The current activated item position. Only used on tablets.
      */
     private int mActivatedPosition = ListView.INVALID_POSITION;
+
+    private int currentPage = 0;
+    private List<Item> data = null;
 
     /**
      * A callback interface that all activities containing this fragment must
@@ -81,19 +92,10 @@ public class ItemListFragment extends ListFragment {
         /**
          * Callback for when an item has been selected.
          */
-        public void onItemSelected(String id);
+        public void onItemSelected(Item aaItem);
+        public String getQuery();
+
     }
-
-    /**
-     * A dummy implementation of the {@link Callbacks} interface that does
-     * nothing. Used only when this fragment is not attached to an activity.
-     */
-    private static Callbacks sDummyCallbacks = new Callbacks() {
-        @Override
-        public void onItemSelected(String id) {
-        }
-    };
-
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
@@ -146,11 +148,10 @@ public class ItemListFragment extends ListFragment {
         // device loses its Wi-Fi connection midway through the user using the app,
         // you don't want to refresh the display--this would force the display of
         // an error page.
-        if (!checkAdapter() && refreshDisplay) {
+        try {
             loadPage();
-        } else {
-            SimpleAdapter adapter = (SimpleAdapter) getListAdapter();
-            adapter.notifyDataSetChanged();
+        } catch (UnsupportedEncodingException e) {
+            throw new AssertionError("UTF-8 is unknown");
         }
     }
 
@@ -178,13 +179,17 @@ public class ItemListFragment extends ListFragment {
         }
     }
 
-    // Uses AsyncTask subclass to download the JSONP feed from Zappos
+    // Uses AsyncTask subclass to download the requested JSON from Zappos
     // This avoids UI lock up.
-    public void loadPage() {
+    public void loadPage() throws UnsupportedEncodingException {
         if (((sPref.equals(ANY)) && (wifiConnected || mobileConnected))
                 || ((sPref.equals(WIFI)) && (wifiConnected))) {
             // AsyncTask subclass
-            new DownloadResultTask().execute(URL);
+
+
+            String query = URLEncoder.encode(mCallbacks.getQuery(), "utf-8");
+            String lUrl = URL + query + getResources().getString(R.string.api_key);
+            new DownloadResultTask().execute(lUrl);
         } else {
             //TODO: Modify layout to display an error
         }
@@ -206,8 +211,7 @@ public class ItemListFragment extends ListFragment {
     public void onDetach() {
         super.onDetach();
 
-        // Reset the active callbacks interface to the dummy implementation.
-        mCallbacks = sDummyCallbacks;
+
     }
 
     @Override
@@ -216,7 +220,7 @@ public class ItemListFragment extends ListFragment {
 
         // Notify the active callbacks interface (the activity, if the
         // fragment is attached to one) that an item has been selected.
-        mCallbacks.onItemSelected(DummyContent.ITEMS.get(position).id);
+        mCallbacks.onItemSelected(data.get(position));
     }
 
     @Override
@@ -300,23 +304,59 @@ public class ItemListFragment extends ListFragment {
 
         @Override
         protected String doInBackground(String... params) {
+
             try{
                     InputStream JSONStream = downloadUrl(params[0]);
-                    zjsonParse.readStream(JSONStream);
+                    items = zjsonParse.readStream(JSONStream);
+                    if(items == null){
+                        return getResources().getString(R.string.data_not_there);
+                    }
+                    else
+                        return getResources().getString(R.string.data_loaded);
+
             }
-            catch(IOException e) {
-                return getResources().getString(R.string.connection_error);
+            catch (IOException e) {
+                if (e.getMessage().contains("authentication challenge")) {
+                    return "Error " + Integer.toString(HttpsURLConnection.HTTP_UNAUTHORIZED) + "\nYou are not authorized to see this data";
+                }
+                else return "";
             }
-            return null;
         }
 
         @Override
         protected void onPostExecute(String result) {
-            Toast.makeText(getActivity(), "AsyncTask", Toast.LENGTH_LONG).show();
+            Toast.makeText(getActivity(), result, Toast.LENGTH_LONG).show();
+            if(items.isEmpty())
+            {
+                Toast.makeText(getActivity(), getResources().getString(R.string.query_empty), Toast.LENGTH_LONG).show();
+                getActivity().onBackPressed();
+            }
+            else
+                Toast.makeText(getActivity(), "Success" + items.get(0).getPrice(), Toast.LENGTH_LONG).show(); //do something with data here
+
             getListView().removeFooterView(footer);
         }
 
 
+    }
+
+    private String convertStreamToString(InputStream is) {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        StringBuilder sb = new StringBuilder();
+
+        String line = null;
+        try {
+            while ((line = reader.readLine()) != null) sb.append(line + "\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                is.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return sb.toString();
     }
 
     // Given a string representation of a URL, sets up a connection and gets
@@ -324,8 +364,8 @@ public class ItemListFragment extends ListFragment {
     private InputStream downloadUrl(String urlString) throws IOException {
         URL url = new URL(urlString);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setReadTimeout(10000 /* milliseconds */);
-        connection.setConnectTimeout(15000 /* milliseconds */);
+        connection.setReadTimeout(100000 /* milliseconds */);
+        connection.setConnectTimeout(150000 /* milliseconds */);
         connection.setRequestMethod("GET");
         connection.setDoInput(true);
         // Starts the query

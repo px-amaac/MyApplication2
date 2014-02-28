@@ -22,7 +22,7 @@ public class SearchActivity extends Activity{
         SearchView searchView = (SearchView) findViewById(R.id.search_box);
         // Assumes current activity is the searchable activity
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
-        searchView.setIconifiedByDefault(false);
+        searchView.setIconifiedByDefault(false); //display full text box
         // Show the Up button in the action bar.
         getActionBar().setDisplayHomeAsUpEnabled(true);
     }
