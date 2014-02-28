@@ -14,6 +14,7 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.ListFragment;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Toast;
@@ -41,7 +42,7 @@ import javax.net.ssl.HttpsURLConnection;
  * Activities containing this fragment MUST implement the {@link Callbacks}
  * interface.
  */
-public class ItemListFragment extends ListFragment {
+public class ItemListFragment extends ListFragment implements AbsListView.OnScrollListener {
 
     public static final String WIFI = "Wi-Fi";
     public static final String ANY = "Any";
@@ -85,6 +86,30 @@ public class ItemListFragment extends ListFragment {
     private ArrayList<HashMap<String,String>>  data = null;
     /*custom list view loader task uses Universal image adapter*/
     private ListViewLoaderTask listTask = null;
+    private static final int threshold = 3;
+
+    @Override
+    public void onScrollStateChanged(AbsListView view, int scrollState) {
+        //checks when scroll state is idle. This happens at the bottem of the list view. When user reaches bottom it loads more data.
+        if(scrollState == SCROLL_STATE_IDLE){
+            if (view.getLastVisiblePosition() >= view.getCount() - 1 - threshold) {
+                Toast.makeText(getActivity(), "Scrol StateIdle, last visible " + view.getLastVisiblePosition() + "threshold = " + threshold, Toast.LENGTH_LONG).show();
+                currentPage++;
+                //load more list items:
+                try {
+                    Toast.makeText(getActivity(), "LoadPage", Toast.LENGTH_LONG).show();
+                    loadPage(currentPage);
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+
+    }
 
     /**
      * A callback interface that all activities containing this fragment must
@@ -129,7 +154,9 @@ public class ItemListFragment extends ListFragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
+        getListView().setOnScrollListener(this);
+        View footer = ((LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.list_footer, null, false);
+        getListView().addFooterView(footer);
         // Restore the previously serialized activated item position.
         if (savedInstanceState != null
                 && savedInstanceState.containsKey(STATE_ACTIVATED_POSITION)) {
@@ -155,7 +182,7 @@ public class ItemListFragment extends ListFragment {
         // you don't want to refresh the display--this would force the display of
         // an error page.
         try {
-            loadPage();
+            loadPage(0);
         } catch (UnsupportedEncodingException e) {
             throw new AssertionError("UTF-8 is unknown");
         }
@@ -187,7 +214,7 @@ public class ItemListFragment extends ListFragment {
 
     // Uses AsyncTask subclass to download the requested JSON from Zappos
     // This avoids UI lock up.
-    public void loadPage() throws UnsupportedEncodingException {
+    public void loadPage(int currentpage) throws UnsupportedEncodingException {
         if (((sPref.equals(ANY)) && (wifiConnected || mobileConnected))
                 || ((sPref.equals(WIFI)) && (wifiConnected))) {
             // AsyncTask subclass
@@ -196,7 +223,7 @@ public class ItemListFragment extends ListFragment {
             String query = URLEncoder.encode(mCallbacks.getQuery(), "utf-8");
             ///Search/term/<SEARCH_TERM>?limit=<LIMIT>&page=<PAGE_NUMBER>
             /*************************************************************************************************************************************/
-            String lUrl = URL + query + getResources().getString(R.string.limit_page) + currentPage + getResources().getString(R.string.api_key);
+            String lUrl = URL + query + getResources().getString(R.string.limit_page) + currentpage + getResources().getString(R.string.api_key);
             /***********************************************************Test This Tomrrow***************************************************************************/
            new FakeDownloadResultTask().execute();
            // new DownloadResultTask().execute(lUrl);
@@ -310,8 +337,6 @@ public class ItemListFragment extends ListFragment {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            View footer = ((LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.list_footer, null, false);
-            getListView().addFooterView(footer);
         }
 
         @Override
@@ -334,27 +359,23 @@ public class ItemListFragment extends ListFragment {
                 Toast.makeText(getActivity(), getResources().getString(R.string.query_empty), Toast.LENGTH_LONG).show();
                 getActivity().onBackPressed();
             } else{
-                currentPage++;
                 data.addAll(items);
                 ListViewLoaderTask lvLoader = new ListViewLoaderTask();
                 lvLoader.execute(data);
             }
-            getListView().removeFooterView(footer);
         }
 
 
     }
 
     private class DownloadResultTask extends AsyncTask<String, Void, String> {
-        View footer;
         List<HashMap<String, String>> items = null;
         ZapposJSONParser zjsonParse = new ZapposJSONParser();
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            View footer = ((LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.list_footer, null, false);
-            getListView().addFooterView(footer);
+
         }
 
         @Override
@@ -387,7 +408,6 @@ public class ItemListFragment extends ListFragment {
                 ListViewLoaderTask lvLoader = new ListViewLoaderTask();
                 lvLoader.execute(data);
             }
-            getListView().removeFooterView(footer);
         }
     }
 
@@ -429,6 +449,7 @@ public class ItemListFragment extends ListFragment {
             } else {
                 ((ImageLoaderListAdapter) getListAdapter())
                         .notifyDataSetChanged();
+                getListView().setSelection(currentPage * 10);
             }
         }
     }

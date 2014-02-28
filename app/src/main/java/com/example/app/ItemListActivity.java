@@ -131,7 +131,7 @@ public class ItemListActivity extends FragmentActivity
                 ItemListFragment ilf = (ItemListFragment) getSupportFragmentManager().findFragmentById(R.id.item_list);
                 if (ilf != null) {
                     try {
-                        ilf.loadPage();
+                        ilf.loadPage(0);
                     } catch (UnsupportedEncodingException e) {
                         throw new AssertionError("UTF-8 is unknown");
                     }
