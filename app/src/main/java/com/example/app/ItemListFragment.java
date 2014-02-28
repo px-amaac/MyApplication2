@@ -18,6 +18,8 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
+import com.example.app.dummy.DummyContentCreator;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -195,7 +197,8 @@ public class ItemListFragment extends ListFragment {
             /*************************************************************************************************************************************/
             String lUrl = URL + query + getResources().getString(R.string.limit_page) + currentPage + getResources().getString(R.string.api_key);
             /***********************************************************Test This Tomrrow***************************************************************************/
-            new DownloadResultTask().execute(lUrl);
+           new FakeDownloadResultTask().execute();
+           // new DownloadResultTask().execute(lUrl);
         } else {
             //TODO: Modify layout to display an error
         }
@@ -296,6 +299,51 @@ public class ItemListFragment extends ListFragment {
         }
     }
 
+    private class FakeDownloadResultTask extends AsyncTask<Void, Void, Void>{
+        View footer;
+        List<HashMap<String, String>> items = null;
+        DummyContentCreator contentCreator = new DummyContentCreator();
+
+
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            View footer = ((LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.list_footer, null, false);
+            getListView().addFooterView(footer);
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+
+
+            try {
+                items = contentCreator.generateItems();
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            if (items.isEmpty()) {
+                Toast.makeText(getActivity(), getResources().getString(R.string.query_empty), Toast.LENGTH_LONG).show();
+                getActivity().onBackPressed();
+            } else{
+                currentPage++;
+                data.addAll(items);
+                ListViewLoaderTask lvLoader = new ListViewLoaderTask();
+                lvLoader.execute(data);
+            }
+            getListView().removeFooterView(footer);
+        }
+
+
+    }
+
     private class DownloadResultTask extends AsyncTask<String, Void, String> {
         View footer;
         List<HashMap<String, String>> items = null;
@@ -383,7 +431,6 @@ public class ItemListFragment extends ListFragment {
             }
         }
     }
-
     // Given a string representation of a URL, sets up a connection and gets
     // an input stream.
     private InputStream downloadUrl(String urlString) throws IOException {

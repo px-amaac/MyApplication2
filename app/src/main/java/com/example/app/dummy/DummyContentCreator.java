@@ -24,18 +24,18 @@ public class DummyContentCreator {
                 "http://www.zappos.com/images/z2/2/7/6/7/3/2276730-t-THUMBNAIL.jpg", "0%", "8149427"};
 
 
-    DummyContentCreator(){
+    public DummyContentCreator(){
         ITEMS = new ArrayList<HashMap<String, String>>();
     }
 
-    List<HashMap<String, String>> generateItems(){
+    public List<HashMap<String, String>> generateItems(){
         while (ITEMS.size() < listcount){
             ITEMS.add(createItem());
         }
         return ITEMS;
     }
 
-    HashMap<String, String> createItem(){
+    private HashMap<String, String> createItem(){
         HashMap<String, String> result = new HashMap<String, String>();
 
         for(int i = 0; i < keys.length; i++) {

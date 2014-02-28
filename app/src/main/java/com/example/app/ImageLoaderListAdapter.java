@@ -37,7 +37,10 @@ public class ImageLoaderListAdapter extends SimpleAdapter {
         mFrom = from;
         il = ImageLoader.getInstance();
         dio = new DisplayImageOptions.Builder()
-                .bitmapConfig(Bitmap.Config.RGB_565).cacheInMemory()
+                .bitmapConfig(Bitmap.Config.RGB_565)
+                .cacheInMemory()
+                .showStubImage(R.drawable.testimg)
+                .showImageForEmptyUri(R.drawable.testimg) // resource or drawable
                 .cacheOnDisc().displayer(new RoundedBitmapDisplayer(20))
                 .build();
     }
