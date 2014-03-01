@@ -116,13 +116,15 @@ public class ItemDetailFragment extends Fragment {
         url.setText(murl);
 
         if(!checkSharedPreferences()){
+            if (itemIds == null)
+            {
+                itemIds = new ArrayList<String>();
+            }
             schedule_button.setVisibility(View.VISIBLE);
             schedule_button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if(itemIds.isEmpty()){
-                        itemIds = new ArrayList<String>();
-                    }
+
                     itemIds.add(productId);
 
                     StringBuilder sb = new StringBuilder();
@@ -133,6 +135,7 @@ public class ItemDetailFragment extends Fragment {
                     editor.putString("user_items", sb.toString());
                     editor.commit();
                     AlarmScheduleReciever.scheduleAlarms(getActivity());
+                    schedule_button.setVisibility(View.GONE);
                 }
             });
         }
@@ -147,6 +150,10 @@ public class ItemDetailFragment extends Fragment {
         String user_items = pref.getString("user_items", null);
         if (user_items != null)
         {
+            if (itemIds == null)
+            {
+                itemIds = new ArrayList<String>();
+            }
             itemIds.addAll(Arrays.asList(user_items.split(",")));
             for (String s: itemIds) {
                 if (s.equals(productId))

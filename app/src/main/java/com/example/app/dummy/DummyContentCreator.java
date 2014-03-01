@@ -20,7 +20,7 @@ public class DummyContentCreator {
 
 
     private final String[] keys = { "styleId", "price", "originalPrice", "productUrl", "colorId", "productName", "brandName", "thumbnailImageUrl", "percentOff", "productId"};
-    private final String[] values = {"2276730", "$199.95", "$199.95", "http://www.zappos.com/product/8149427/color/401", "401", "Mutiny", "DC",
+    private final String[] values = {"2276730", "$145.95", "$199.95", "http://www.zappos.com/product/8149427/color/401", "401", "Mutiny", "DC",
                 "http://www.zappos.com/images/z2/2/7/6/7/3/2276730-t-THUMBNAIL.jpg", "0%", "8149427"};
 
 
