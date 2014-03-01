@@ -80,7 +80,7 @@ public class ItemListFragment extends ListFragment implements AbsListView.OnScro
     /*cnumber of paged in the list/ number of times list has gotten more data*/
     private int currentPage = 0;
     /*actual data to fill the list.*/
-    private ArrayList<HashMap<String,String>>  data = null;
+    private List<HashMap<String,String>>  data = null;
     /*custom list view loader task uses Universal image adapter*/
     private ListViewLoaderTask listTask = null;
     private static final int threshold = 1;
@@ -120,6 +120,8 @@ public class ItemListFragment extends ListFragment implements AbsListView.OnScro
 
         public String getQuery();
 
+        public List<HashMap<String, String>> getSales();
+
     }
 
     /**
@@ -138,6 +140,7 @@ public class ItemListFragment extends ListFragment implements AbsListView.OnScro
         getActivity().registerReceiver(receiver, filter);
         data = new ArrayList<HashMap<String, String> >();
 
+
         setHasOptionsMenu(true);
     }
 
@@ -153,6 +156,7 @@ public class ItemListFragment extends ListFragment implements AbsListView.OnScro
         getListView().setOnScrollListener(this);
         View footer = ((LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.list_footer, null, false);
         getListView().addFooterView(footer);
+
         // Restore the previously serialized activated item position.
         if (savedInstanceState != null
                 && savedInstanceState.containsKey(STATE_ACTIVATED_POSITION)) {
@@ -172,11 +176,14 @@ public class ItemListFragment extends ListFragment implements AbsListView.OnScro
 
         updateConnectedFlags();
 
+
+
         // Only loads the page if refreshDisplay is true. Otherwise, keeps previous
         // display. For example, if the user has set "Wi-Fi only" in prefs and the
         // device loses its Wi-Fi connection midway through the user using the app,
         // you don't want to refresh the display--this would force the display of
         // an error page.
+
         try {
             loadPage(0);
         } catch (UnsupportedEncodingException e) {
@@ -211,20 +218,36 @@ public class ItemListFragment extends ListFragment implements AbsListView.OnScro
     // Uses AsyncTask subclass to download the requested JSON from Zappos
     // This avoids UI lock up.
     public void loadPage(int currentpage) throws UnsupportedEncodingException {
-        if (((sPref.equals(ANY)) && (wifiConnected || mobileConnected))
-                || ((sPref.equals(WIFI)) && (wifiConnected))) {
-            // AsyncTask subclass
+
+        List<HashMap<String,String>> tmp = mCallbacks.getSales();
+        if(tmp != null)
+        {
+            if(data != null){
+            data.clear();
+            data.addAll(tmp);
+            }
+            else
+            data = tmp;
+            ListViewLoaderTask lvLoader = new ListViewLoaderTask();
+            lvLoader.execute(data);
+
+        }else{
+
+            if (((sPref.equals(ANY)) && (wifiConnected || mobileConnected))
+                    || ((sPref.equals(WIFI)) && (wifiConnected))) {
+                // AsyncTask subclass
 
 
-            String query = URLEncoder.encode(mCallbacks.getQuery(), "utf-8");
-            ///Search/term/<SEARCH_TERM>?limit=<LIMIT>&page=<PAGE_NUMBER>
-            //URL = "http://api.zappos.com/Search?term=";
-            String lUrl = URL + query + getResources().getString(R.string.limit_page) + currentpage + getResources().getString(R.string.api_key);
-            Toast.makeText(getActivity(), lUrl, Toast.LENGTH_SHORT).show();
-           //new FakeDownloadResultTask().execute();
-            new DownloadResultTask().execute(lUrl);
-        } else {
-            //TODO: Modify layout to display an error
+                String query = URLEncoder.encode(mCallbacks.getQuery(), "utf-8");
+                ///Search/term/<SEARCH_TERM>?limit=<LIMIT>&page=<PAGE_NUMBER>
+                //URL = "http://api.zappos.com/Search?term=";
+                String lUrl = URL + query + getResources().getString(R.string.limit_page) + currentpage + getResources().getString(R.string.api_key);
+                Toast.makeText(getActivity(), lUrl, Toast.LENGTH_SHORT).show();
+               //new FakeDownloadResultTask().execute();
+                new DownloadResultTask().execute(lUrl);
+            } else {
+                //TODO: Modify layout to display an error
+            }
         }
     }
 
@@ -407,7 +430,7 @@ public class ItemListFragment extends ListFragment implements AbsListView.OnScro
         }
     }
 
-    private class ListViewLoaderTask extends AsyncTask<ArrayList<HashMap<String, String>>, Void, ImageLoaderListAdapter> {
+    private class ListViewLoaderTask extends AsyncTask<List<HashMap<String, String>>, Void, ImageLoaderListAdapter> {
         ImageLoaderListAdapter mAdapter = null;
         int count;
         String imgUrl = null;
@@ -415,8 +438,8 @@ public class ItemListFragment extends ListFragment implements AbsListView.OnScro
         // String url = "http://kzfr.org/u/img/original/";
 
         @Override
-        protected ImageLoaderListAdapter doInBackground(ArrayList<HashMap<String, String>>... list) {
-            ArrayList<HashMap<String, String>> items = list[0];
+        protected ImageLoaderListAdapter doInBackground(List<HashMap<String, String>>... list) {
+            List<HashMap<String, String>> items = list[0];
             String[] from = {"thumbnailImageUrl", "brandName", "productName", "price", "percentOff", "productUrl"};
             int[] to = {R.id.item_image, R.id.brand_name, R.id.product_name, R.id.price, R.id.percentoff, R.id.url};
 

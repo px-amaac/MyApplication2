@@ -14,6 +14,7 @@ import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -126,6 +127,7 @@ public class NotifyService extends IntentService {
             if (fprice <= percentOff){
                 NotificationCompat.Builder b = new NotificationCompat.Builder(this);
                 Intent notificationIntent = new Intent(this, ItemListActivity.class);
+                notificationIntent.putExtra("data", (Serializable) items);
                 PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
                         notificationIntent, 0);
                 b.setAutoCancel(true).setDefaults(Notification.DEFAULT_ALL).setWhen(System.currentTimeMillis())

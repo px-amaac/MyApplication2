@@ -15,7 +15,9 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 
 /**
@@ -46,6 +48,7 @@ public class ItemListActivity extends FragmentActivity
     private static final String ITEM_KEY = "item_key";
     private HashMap<String,String> item;
     protected ImageLoader imageLoader = ImageLoader.getInstance();
+    private List<HashMap<String, String>> fromNotification= null;
 
     public ItemListActivity() {
         item = null;
@@ -57,6 +60,9 @@ public class ItemListActivity extends FragmentActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_item_list);
 
+        Intent intent = getIntent();
+
+        fromNotification = (ArrayList<HashMap<String, String>>) intent.getSerializableExtra("data");
         ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(
                 getApplicationContext()).memoryCache(new WeakMemoryCache())
                 .denyCacheImageMultipleSizesInMemory()
@@ -149,6 +155,11 @@ public class ItemListActivity extends FragmentActivity
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    @Override
+    public List<HashMap<String, String>> getSales(){
+        return fromNotification;
     }
 
     @Override
