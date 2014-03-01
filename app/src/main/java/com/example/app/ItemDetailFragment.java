@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
@@ -136,10 +137,12 @@ public class ItemDetailFragment extends Fragment {
                     editor.commit();
                     AlarmScheduleReciever.scheduleAlarms(getActivity());
                     schedule_button.setVisibility(View.GONE);
+                    Toast.makeText(getActivity(), "Schedule alarm", Toast.LENGTH_SHORT).show();
                 }
             });
         }
         else
+
             schedule_button.setVisibility(View.GONE);
         return rootView;
     }

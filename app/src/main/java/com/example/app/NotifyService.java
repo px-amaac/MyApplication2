@@ -80,6 +80,11 @@ public class NotifyService extends IntentService {
             wifiConnected = false;
             mobileConnected = false;
         }
+        /*Log.d("Service up to web call", "*******************************************************************************************************************");
+        DummyContentCreator contentCreator = new DummyContentCreator();
+        items = contentCreator.generateServiceItems();
+        comparePrices();
+        */
 
         if (((prefs.equals(ANY)) && (wifiConnected || mobileConnected))
                 || ((prefs.equals(WIFI)) && (wifiConnected))) {
@@ -121,6 +126,8 @@ public class NotifyService extends IntentService {
         for(HashMap<String, String> s: items){
             String originalPrice = s.get("originalPrice");
             String  price = s.get("price");
+            originalPrice = originalPrice.substring(1);
+            price = price.substring(1);
             double foriginalPrice = Double.valueOf(originalPrice);
             double fprice = Double.valueOf(price);
             double percentOff = foriginalPrice - (foriginalPrice * 0.2);
@@ -139,9 +146,6 @@ public class NotifyService extends IntentService {
 
         }
     }
-
-        //check percentoff
-        //notify user.
 
     private Boolean checkSharedPreferences(){
 

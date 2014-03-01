@@ -17,6 +17,7 @@ public class DummyContentCreator {
      */
     private static List<HashMap<String, String> > ITEMS = null;
     private static final int listcount = 10;
+    private static final int servicecount = 1;
 
 
     private final String[] keys = { "styleId", "price", "originalPrice", "productUrl", "colorId", "productName", "brandName", "thumbnailImageUrl", "percentOff", "productId"};
@@ -34,6 +35,12 @@ public class DummyContentCreator {
         }
         return ITEMS;
     }
+    public List<HashMap<String, String>> generateServiceItems() {
+        while(ITEMS.size() < servicecount){
+            ITEMS.add(createItem());
+        }
+        return ITEMS;
+    }
 
     private HashMap<String, String> createItem(){
         HashMap<String, String> result = new HashMap<String, String>();
@@ -43,5 +50,6 @@ public class DummyContentCreator {
         }
         return result;
     }
+
 
 }

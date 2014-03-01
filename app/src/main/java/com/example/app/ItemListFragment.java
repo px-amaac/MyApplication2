@@ -84,6 +84,7 @@ public class ItemListFragment extends ListFragment implements AbsListView.OnScro
     /*custom list view loader task uses Universal image adapter*/
     private ListViewLoaderTask listTask = null;
     private static final int threshold = 1;
+    private View footer;
 
     @Override
     public void onScrollStateChanged(AbsListView view, int scrollState) {
@@ -154,7 +155,7 @@ public class ItemListFragment extends ListFragment implements AbsListView.OnScro
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         getListView().setOnScrollListener(this);
-        View footer = ((LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.list_footer, null, false);
+        footer = ((LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.list_footer, null, false);
         getListView().addFooterView(footer);
 
         // Restore the previously serialized activated item position.
@@ -222,6 +223,7 @@ public class ItemListFragment extends ListFragment implements AbsListView.OnScro
         List<HashMap<String,String>> tmp = mCallbacks.getSales();
         if(tmp != null)
         {
+            getListView().removeFooterView(footer);
             if(data != null){
             data.clear();
             data.addAll(tmp);

@@ -69,7 +69,9 @@ public class ItemListActivity extends FragmentActivity
                 .defaultDisplayImageOptions(DisplayImageOptions.createSimple())
                 .build();
         imageLoader.init(config);
+        Toast.makeText(this, "AlarmScheduled", Toast.LENGTH_SHORT).show();
         AlarmScheduleReciever.scheduleAlarms(this);
+
 
         if (findViewById(R.id.item_detail_container) != null) {
             // The detail container view will be present only in the
