@@ -1,6 +1,5 @@
 package com.example.app;
 
-import android.content.res.Resources;
 import android.util.JsonReader;
 
 import java.io.IOException;
@@ -32,10 +31,13 @@ public class ZapposJSONParser {
         String statusCode = null;
         Integer currentResultsCount = null;
         Integer totalResultsCount = null;
+        Integer limit = null;
 
         reader.beginObject();
 
-
+        if(reader.nextName().equals("limit")){
+            limit = reader.nextInt();
+        }
         if(reader.nextName().equals("statusCode")){
             statusCode = reader.nextString();
         }

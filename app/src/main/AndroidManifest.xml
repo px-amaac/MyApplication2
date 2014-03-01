@@ -5,6 +5,7 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
     <application
         android:allowBackup="true"
@@ -46,6 +47,14 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.example.app.ItemListActivity" />
         </activity>
+        <receiver android:name=".AlarmScheduleReciever">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
+
+        <service android:name="NotifyService">
+        </service>
     </application>
 
 </manifest>

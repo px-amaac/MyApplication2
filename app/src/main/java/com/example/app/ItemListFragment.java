@@ -86,7 +86,7 @@ public class ItemListFragment extends ListFragment implements AbsListView.OnScro
     private ArrayList<HashMap<String,String>>  data = null;
     /*custom list view loader task uses Universal image adapter*/
     private ListViewLoaderTask listTask = null;
-    private static final int threshold = 3;
+    private static final int threshold = 1;
 
     @Override
     public void onScrollStateChanged(AbsListView view, int scrollState) {
@@ -222,11 +222,13 @@ public class ItemListFragment extends ListFragment implements AbsListView.OnScro
 
             String query = URLEncoder.encode(mCallbacks.getQuery(), "utf-8");
             ///Search/term/<SEARCH_TERM>?limit=<LIMIT>&page=<PAGE_NUMBER>
+            //URL = "http://api.zappos.com/Search?term=";
             /*************************************************************************************************************************************/
             String lUrl = URL + query + getResources().getString(R.string.limit_page) + currentpage + getResources().getString(R.string.api_key);
             /***********************************************************Test This Tomrrow***************************************************************************/
-           new FakeDownloadResultTask().execute();
-           // new DownloadResultTask().execute(lUrl);
+            Toast.makeText(getActivity(), lUrl, Toast.LENGTH_SHORT).show();
+           //new FakeDownloadResultTask().execute();
+            new DownloadResultTask().execute(lUrl);
         } else {
             //TODO: Modify layout to display an error
         }
@@ -447,9 +449,10 @@ public class ItemListFragment extends ListFragment implements AbsListView.OnScro
                     listTask.execute(data);
                 }
             } else {
+                getListView().setSelection((currentPage * 10) -10);
                 ((ImageLoaderListAdapter) getListAdapter())
                         .notifyDataSetChanged();
-                getListView().setSelection(currentPage * 10);
+
             }
         }
     }

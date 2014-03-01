@@ -1,6 +1,8 @@
 package com.example.app;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -14,6 +16,8 @@ import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.display.RoundedBitmapDisplayer;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 /**
@@ -39,6 +43,10 @@ public class ItemDetailFragment extends Fragment {
     private TextView url;
     private Button schedule_button;
     private HashMap<String, String> fragData;
+    private static final String PREFS_NAME = "useritems";
+    private ArrayList<String> itemIds;
+    private String productId;
+    SharedPreferences pref;
 
     /*callback interface*/
     public interface GetData {
@@ -80,6 +88,7 @@ public class ItemDetailFragment extends Fragment {
                 .showImageForEmptyUri(R.drawable.testimg).cacheInMemory()
                 .cacheOnDisc().displayer(new RoundedBitmapDisplayer(20))
                 .build();
+        fragData = gd.getData();
 
         image = (ImageView) rootView.findViewById(R.id.image);
 
@@ -88,29 +97,62 @@ public class ItemDetailFragment extends Fragment {
         product_name = (TextView) rootView.findViewById(R.id.product_name);
         price = (TextView) rootView.findViewById(R.id.price);
         percentoff = (TextView) rootView.findViewById(R.id.percentoff);
+        url = (TextView) rootView.findViewById(R.id.url);
         schedule_button = (Button) rootView.findViewById(R.id.schedule_button);
 
         String imagePath;
-        imagePath = fragData.get("image");
+        imagePath = fragData.get("thumbnailImageUrl");
         il.displayImage(imagePath, image, dio);
-        String mbrand_name = fragData.get("brand_name");
+        String mbrand_name = fragData.get("brandName");
         brand_name.setText(mbrand_name);
-        String mproduct_name = fragData.get("product_name");
+        String mproduct_name = fragData.get("productName");
         product_name.setText(mproduct_name);
 
         String mprice = fragData.get("price");
         price.setText(mprice);
-        String mpercentoff =  fragData.get("product_name");
+        String mpercentoff =  fragData.get("percentOff");
         percentoff.setText(mpercentoff);
-        fragData = gd.getData();
-        schedule_button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //lanuch alarm service.
-            }
-        });
-        return rootView;
+        String murl =  fragData.get("productUrl");
+        url.setText(murl);
 
+        if(!checkSharedPreferences()){
+            schedule_button.setVisibility(View.VISIBLE);
+            schedule_button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if(itemIds.isEmpty()){
+                        itemIds = new ArrayList<String>();
+                    }
+                    itemIds.add(productId);
+
+                    StringBuilder sb = new StringBuilder();
+                    for (String s: itemIds) {
+                        sb.append(s).append(",");
+                    }
+                    SharedPreferences.Editor editor = pref.edit();
+                    editor.putString("user_items", sb.toString());
+                    editor.commit();
+                }
+            });
+        }
+        else
+            schedule_button.setVisibility(View.GONE);
+        return rootView;
+    }
+    /*returns true if the current item id is equal to any of the already stored ids. returns false otherwise.*/
+    private Boolean checkSharedPreferences(){
+        pref = getActivity().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        productId = fragData.get("productId");
+        String user_items = pref.getString("user_items", null);
+        if (user_items != null)
+        {
+            itemIds.addAll(Arrays.asList(user_items.split(",")));
+            for (String s: itemIds) {
+                if (s.equals(productId))
+                    return true;
+            }
+        }
+        return false;
     }
 }
 
