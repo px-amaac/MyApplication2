@@ -246,7 +246,8 @@ public class ItemListFragment extends ListFragment implements AbsListView.OnScro
                 String lUrl = URL + query + getResources().getString(R.string.limit_page) + currentpage + getResources().getString(R.string.api_key);
                 Toast.makeText(getActivity(), lUrl, Toast.LENGTH_SHORT).show();
                //new FakeDownloadResultTask().execute();
-                new DownloadResultTask().execute(lUrl);
+                if(this.isAdded())
+                    new DownloadResultTask().execute(lUrl);
             } else {
                 //TODO: Modify layout to display an error
             }

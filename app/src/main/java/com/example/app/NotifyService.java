@@ -10,6 +10,7 @@ import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -33,7 +34,7 @@ public class NotifyService extends IntentService {
     private static final int NOTIFY_ME_ID=1337;
     public static final String WIFI = "Wi-Fi";
     public static final String ANY = "Any";
-    private static final String URL = "http://api.zappos.com/Product?id=[";
+    private static final String URL = "http://api.zappos.com/Product?id=";
 
     // Whether there is a Wi-Fi connection.
     private static boolean wifiConnected = false;
@@ -55,7 +56,6 @@ public class NotifyService extends IntentService {
     @Override
     public void onCreate() {
         super.onCreate();
-        mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
         updateConnectedFlags();
 
@@ -63,11 +63,11 @@ public class NotifyService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-
+        mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         prefs = getDefaultSharedPreferences(this);
         networkPref = prefs.getString("listPref", "Wi-Fi");
+        items = new ArrayList<HashMap<String, String>>();
         ProductJSONParser pjsonParse = new ProductJSONParser();
-
         //check network connection
         final ConnectivityManager manager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo;
@@ -87,45 +87,53 @@ public class NotifyService extends IntentService {
         */
 
         if (((prefs.equals(ANY)) && (wifiConnected || mobileConnected))
-                || ((prefs.equals(WIFI)) && (wifiConnected))) {
-            String lURL = URL;
-            if(!checkSharedPreferences()){
+                || ((networkPref.equals(WIFI)) && (wifiConnected))) {
+
+            if(checkSharedPreferences()){
+                if (itemIds == null)
+                {
+                    itemIds = new ArrayList<String>();
+                }
                 if(itemIds.isEmpty()){
                     stopSelf();
                 }
-                for(int i = 0; i < itemIds.size(); i++){
-                    lURL = lURL.concat(itemIds.get(i));
-                    if(i != itemIds.size() - 1)
-                    lURL = lURL.concat(",");
-                }
-                lURL = lURL.concat("]&includes=[\"styles\"]");
-                lURL = lURL.concat(getResources().getString(R.string.api_key));
-                Toast.makeText(this, lURL, Toast.LENGTH_SHORT).show();
+
                 try {
-                    InputStream JSONStream = downloadUrl(lURL);
-                    items = pjsonParse.readStream(JSONStream);
-                    if (items == null) {
-                        Toast.makeText(this, getResources().getString(R.string.data_not_there), Toast.LENGTH_LONG).show();
-                        stopSelf();
-                    } else
-                        Toast.makeText(this, getResources().getString(R.string.data_loaded), Toast.LENGTH_LONG).show();
+                    for(int i = 0; i < itemIds.size(); i++){
+                        String lURL = URL;
+                        lURL = lURL.concat(itemIds.get(i));
+                        lURL = lURL.concat("&includes=[\"styles\"]");
+                        lURL = lURL.concat(getResources().getString(R.string.api_key));
+                        InputStream JSONStream = downloadUrl(lURL);
+
+                        items.add(pjsonParse.readStream(JSONStream));
+                    }
+                        if (items == null || items.isEmpty()) {
+                            stopSelf();
+                        }else
+                            comparePrices();
 
                 } catch (IOException e) {
                     if (e.getMessage().contains("authentication challenge")) {
                         Toast.makeText(this, "Error " + Integer.toString(HttpsURLConnection.HTTP_UNAUTHORIZED) + "\nYou are not authorized to see this data", Toast.LENGTH_LONG).show();
                     }
                 }
-                comparePrices();
+
             }
         }else {stopSelf();}
     }
 
     private void comparePrices(){
 
+        Log.d("Compare Price", "*******************************************************************************************************************");
+
+
         //compare prices and launch nnotifications if needed.
         for(HashMap<String, String> s: items){
             String originalPrice = s.get("originalPrice");
             String  price = s.get("price");
+            Log.d("Original price and price", "*************************" + originalPrice + "**************************" + price + "****************************************************************");
+
             originalPrice = originalPrice.substring(1);
             price = price.substring(1);
             double foriginalPrice = Double.valueOf(originalPrice);
@@ -149,13 +157,19 @@ public class NotifyService extends IntentService {
 
     private Boolean checkSharedPreferences(){
 
+
         String user_items = prefs.getString("user_items", null);
         if (user_items != null)
         {
+            if (itemIds == null)
+            {
+                itemIds = new ArrayList<String>();
+            }
             itemIds.addAll(Arrays.asList(user_items.split(",")));
             return true;
         }
-        return false;
+        else
+            return false;
     }
     private InputStream downloadUrl(String urlString) throws IOException {
         URL url = new URL(urlString);

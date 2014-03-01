@@ -21,8 +21,8 @@ public class AlarmScheduleReciever extends BroadcastReceiver {
         AlarmManager manager = (AlarmManager)ctxt.getSystemService(Context.ALARM_SERVICE);
         Intent i = new Intent(ctxt, NotifyService.class);
         PendingIntent pi = PendingIntent.getService(ctxt, 0, i, 0); //context, requestcode, pending intent, intent flags.
-        manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), AlarmManager.INTERVAL_FIFTEEN_MINUTES, pi);
-        //manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 1000* 100, pi);
+        //manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), AlarmManager.INTERVAL_FIFTEEN_MINUTES, pi);
+        manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 1000* 100, pi);
         Toast.makeText(ctxt, "AlarmScheduled", Toast.LENGTH_SHORT).show();
     }
 }

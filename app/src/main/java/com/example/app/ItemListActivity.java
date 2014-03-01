@@ -69,7 +69,7 @@ public class ItemListActivity extends FragmentActivity
                 .defaultDisplayImageOptions(DisplayImageOptions.createSimple())
                 .build();
         imageLoader.init(config);
-        Toast.makeText(this, "AlarmScheduled", Toast.LENGTH_SHORT).show();
+
         AlarmScheduleReciever.scheduleAlarms(this);
 
 
