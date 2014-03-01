@@ -53,7 +53,7 @@
             </intent-filter>
         </receiver>
 
-        <service android:name="NotifyService">
+        <service android:name=".NotifyService">
         </service>
     </application>
 

@@ -1,9 +1,9 @@
 package com.example.app;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -132,6 +132,7 @@ public class ItemDetailFragment extends Fragment {
                     SharedPreferences.Editor editor = pref.edit();
                     editor.putString("user_items", sb.toString());
                     editor.commit();
+                    AlarmScheduleReciever.scheduleAlarms(getActivity());
                 }
             });
         }
@@ -141,7 +142,7 @@ public class ItemDetailFragment extends Fragment {
     }
     /*returns true if the current item id is equal to any of the already stored ids. returns false otherwise.*/
     private Boolean checkSharedPreferences(){
-        pref = getActivity().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        pref = PreferenceManager.getDefaultSharedPreferences(getActivity());
         productId = fragData.get("productId");
         String user_items = pref.getString("user_items", null);
         if (user_items != null)

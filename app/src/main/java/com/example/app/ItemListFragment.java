@@ -48,9 +48,6 @@ public class ItemListFragment extends ListFragment implements AbsListView.OnScro
     public static final String ANY = "Any";
     private static final String URL = "http://api.zappos.com/Search?term=";
 
-
-
-
     // Whether there is a Wi-Fi connection.
     private static boolean wifiConnected = false;
     // Whether there is a mobile connection.
@@ -108,7 +105,6 @@ public class ItemListFragment extends ListFragment implements AbsListView.OnScro
 
     @Override
     public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-
     }
 
     /**
@@ -223,9 +219,7 @@ public class ItemListFragment extends ListFragment implements AbsListView.OnScro
             String query = URLEncoder.encode(mCallbacks.getQuery(), "utf-8");
             ///Search/term/<SEARCH_TERM>?limit=<LIMIT>&page=<PAGE_NUMBER>
             //URL = "http://api.zappos.com/Search?term=";
-            /*************************************************************************************************************************************/
             String lUrl = URL + query + getResources().getString(R.string.limit_page) + currentpage + getResources().getString(R.string.api_key);
-            /***********************************************************Test This Tomrrow***************************************************************************/
             Toast.makeText(getActivity(), lUrl, Toast.LENGTH_SHORT).show();
            //new FakeDownloadResultTask().execute();
             new DownloadResultTask().execute(lUrl);
