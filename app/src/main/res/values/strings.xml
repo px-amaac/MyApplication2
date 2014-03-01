@@ -25,6 +25,9 @@
     <string name="itemdescription">Things about the Item</string>
     <string name="percent_off_label">On Sale</string>
     <string name="schedule_button">Set Savings Alert</string>
+    <string name="notify">One of your Items is on Sale</string>
+    <string name="notify_text">One of your items is on sale at Zappos!</string>
+
 
     <string-array name="search_names">
         <item>styleId</item>
